@@ -1,4 +1,5 @@
--- test de dbms_space.object_growth_trend en bloque anónimo, para una tabla en salida por pantalla
+-- test of dbms_space.object_growth_trend in a PL/SQL block, for one table only screen output
+
 set severoutput on
 
 begin
@@ -8,3 +9,4 @@ begin
   end loop;
 end;
 /
+
