@@ -15,8 +15,8 @@ The steps to run the simulation are:
 
 	SQL> @test_dbms_space_growth_trend.sql
 	
-NOTE: If you get this message:
-	EXCEPTION in chrow processing -  code: -14551  msg: ORA-14551 
+**NOTE**: If you get this message:
+	`EXCEPTION in chrow processing -  code: -14551  msg: ORA-14551 `
 	
 This output is acceptable value! It's caused by a somehow bug or something and it's purely informative. 
 It didn't raises itself an exception or error. Just ignore it!
@@ -31,7 +31,7 @@ It didn't raises itself an exception or error. Just ignore it!
 
 	Table created.
 
-NOTE: The script first tries to drop the table in case it exists, so this output is acceptable.
+**NOTE**: The script first tries to drop the table in case it exists, so this output is acceptable.
 
 4- Run the procedure script.
 
@@ -41,7 +41,7 @@ NOTE: The script first tries to drop the table in case it exists, so this output
 	
 5- Launch a simulation.
 
-	SQL> exec CHECK_SEGMENT_GROWTH('HR')
+	SQL> exec CHECK_SEGMENT_GROWTH('HR')  --> Replace HR for the schema name you want to run the simulation.
 
     PL/SQL procedure successfully completed.
 	
