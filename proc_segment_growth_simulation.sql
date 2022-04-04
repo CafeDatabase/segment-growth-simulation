@@ -1,7 +1,7 @@
 create or replace procedure CHECK_SEGMENT_GROWTH (p_owner varchar2)
 as
     cursor c_segments is 
-	Select owner, segment_name, tablespace_name,  Substr(segment_type, 1, 30) segment_type, partition_name, bytes size_mb
+	Select owner, segment_name, tablespace_name,  Substr(segment_type, 1, 30) segment_type, partition_name, bytes size_bytes
       From dba_Segments
      Where owner = p_owner
        And Instr(segment_name,'BIN$') = 0 
@@ -21,11 +21,8 @@ as
 	v_pct_ocupation number;
 	
 begin
-    DBMS_OUTPUT.ENABLE;
     for x in c_segments
 	loop
-	    DBMS_OUTPUT.PUT_LINE('v_owner:= '||x.owner||' v_segment:= '||x.segment_name||' v_type:= '||x.segment_type);
-		-- Follow up output
 		
 		v_position_estimation :=0;
 	    v_initial_space_used  :=0;
@@ -57,7 +54,7 @@ begin
 				  x.segment_type,
 				  x.partition_name,
 				  x.tablespace_name,
-				  x.size,
+				  x.size_bytes,
 				  v_initial_space_used,
 				  v_space_current,
 				  v_space_future,
