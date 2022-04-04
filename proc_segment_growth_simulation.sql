@@ -1,98 +1,101 @@
 create or replace procedure CHECK_SEGMENT_GROWTH (p_owner varchar2)
 as
-    cursor c_segmentos is select owner, segment_name, substr(segment_type,1,30) segment_type from dba_segments where owner=p_owner;
-    cursor c_estimacion (v_owner varchar2, v_segmento varchar2,v_tipo varchar2)
-        is select * from table(dbms_space.OBJECT_GROWTH_TREND(v_owner,v_segmento,v_tipo)) order by timepoint,quality;
-	v_posicion_estimacion number;
-	v_espacio_usado_inicial number;
-	v_espacio_actual number;
-	v_espacio_futuro number;
-	v_porcentaje_ocupado number;
+    cursor c_segments is select owner, segment_name, substr(segment_type,1,30) segment_type, bytes/1024/1024 size_mb from dba_segments where owner=p_owner;
+    cursor c_estimation (v_owner varchar2, v_segment varchar2,v_type varchar2)
+        is select * from table(dbms_space.OBJECT_GROWTH_TREND(v_owner,v_segment,v_type)) order by timepoint,quality;
+	v_position_estimation number;
+	v_initial_space_used number;
+	v_space_current number;
+	v_space_future number;
+	v_pct_ocupation number;
 begin
-    DBMS_OUTPUT.ENABLE(1000000);
-    for x in c_segmentos
+    DBMS_OUTPUT.ENABLE;
+    for x in c_segments
 	loop
-	    DBMS_OUTPUT.PUT_LINE('v_owner:= '||x.owner||' v_segmento:= '||x.segment_name||' v_tipo:= '||x.segment_type);
-		v_posicion_estimacion :=0;
-	    v_espacio_usado_inicial  :=0;
-	    v_espacio_actual  :=0;
-	    v_espacio_futuro  :=0;
-	    v_porcentaje_ocupado  :=0;
+	    DBMS_OUTPUT.PUT_LINE('v_owner:= '||x.owner||' v_segment:= '||x.segment_name||' v_type:= '||x.segment_type);
+		v_position_estimation :=0;
+	    v_initial_space_used  :=0;
+	    v_space_current  :=0;
+	    v_space_future  :=0;
+	    v_pct_ocupation  :=0;
 		if x.segment_type like '%PARTITION%' then
-				v_posicion_estimacion:=0;
-				for y in c_estimacion(x.owner, x.segment_name, x.segment_type)
+				v_position_estimation:=0;
+				for y in c_estimation(x.owner, x.segment_name, x.segment_type)
 				loop
-						if v_posicion_estimacion=0 then
-								v_espacio_usado_inicial:=y.space_usage;
-								v_espacio_actual:=y.space_usage;
-								v_espacio_futuro:=y.space_usage;
-								v_porcentaje_ocupado:=round(y.space_usage/y.space_alloc,2)*100;
-								v_posicion_estimacion:=1;
+						if v_position_estimation=0 then
+								v_initial_space_used:=y.space_usage;
+								v_space_current:=y.space_usage;
+								v_space_future:=y.space_usage;
+								v_pct_ocupation:=round(y.space_usage/y.space_alloc,2)*100;
+								v_position_estimation:=1;
 						end if;
 						if trunc(y.timepoint)=trunc(systimestamp) then
-								v_espacio_actual:=y.space_usage;
-								v_porcentaje_ocupado:=round(y.space_usage/y.space_alloc,2)*100;
-								v_posicion_estimacion:=2;
+								v_space_current:=y.space_usage;
+								v_pct_ocupation:=round(y.space_usage/y.space_alloc,2)*100;
+								v_position_estimation:=2;
 						end if;
-						if v_posicion_estimacion=2 then
-								v_espacio_futuro:=y.space_usage;
+						if v_position_estimation=2 then
+								v_space_future:=y.space_usage;
 						end if;
 				end loop;
 				if x.segment_type like '%INDEX%' then
-						insert into laboratorio.capacidad_tablas
+						insert into CAPACITY_SEGMENTS
 							values (  x.owner,
 									(select index_name from dba_ind_partitions where partition_name=x.segment_name and index_owner=x.owner),
 									x.segment_type,
 									x.segment_name,
-									v_espacio_usado_inicial,
-									v_espacio_actual,
-									v_espacio_futuro,
-									v_porcentaje_ocupado,
+									x.size_mb,
+									v_initial_space_used,
+									v_space_current,
+									v_space_future,
+									v_pct_ocupation,
 									sysdate);
 				else 
-						insert into laboratorio.capacidad_tablas
+						insert into CAPACITY_SEGMENTS
 							values (  x.owner,
 									(select table_name from dba_tab_partitions where partition_name=x.segment_name and table_owner=x.owner),
 									x.segment_type,
 									x.segment_name,
-									v_espacio_usado_inicial,
-									v_espacio_actual,
-									v_espacio_futuro,
-									v_porcentaje_ocupado,
+									x.size_mb,
+									v_initial_space_used,
+									v_space_current,
+									v_space_future,
+									v_pct_ocupation,
 									sysdate);
 				end if;
 		else
 		        if x.segment_type not like '%LOB%' then
 				begin
-				v_posicion_estimacion:=0;
-				for y in c_estimacion(x.owner, x.segment_name, x.segment_type)
+				v_position_estimation:=0;
+				for y in c_estimation(x.owner, x.segment_name, x.segment_type)
 				loop
-						if v_posicion_estimacion=0 then
-								v_espacio_usado_inicial:=y.space_usage;
-								v_espacio_actual:=y.space_usage;
-								v_espacio_futuro:=y.space_usage;
-								v_porcentaje_ocupado:=round(y.space_usage/y.space_alloc,2)*100;
-						v_posicion_estimacion:=1;
+						if v_position_estimation=0 then
+								v_initial_space_used:=y.space_usage;
+								v_space_current:=y.space_usage;
+								v_space_future:=y.space_usage;
+								v_pct_ocupation:=round(y.space_usage/y.space_alloc,2)*100;
+						v_position_estimation:=1;
 						end if;
 						if trunc(y.timepoint)=trunc(systimestamp) then
-								v_espacio_actual:=y.space_usage;
-								v_porcentaje_ocupado:=round(y.space_usage/y.space_alloc,2)*100;
-								v_posicion_estimacion:=2;
+								v_space_current:=y.space_usage;
+								v_pct_ocupation:=round(y.space_usage/y.space_alloc,2)*100;
+								v_position_estimation:=2;
 						end if;
-						if v_posicion_estimacion=2 then
-											v_espacio_futuro:=y.space_usage;
+						if v_position_estimation=2 then
+											v_space_future:=y.space_usage;
 						end if;
 				end loop;
 				
-				insert into laboratorio.capacidad_tablas
+				insert into CAPACITY_SEGMENTS
 						values (x.owner,
 								x.segment_name,
 								x.segment_type,
 								null,
-								v_espacio_usado_inicial,
-								v_espacio_actual,
-								v_espacio_futuro,
-								v_porcentaje_ocupado,
+								x.size_mb,
+								v_initial_space_used,
+								v_space_current,
+								v_space_future,
+								v_pct_ocupation,
 								sysdate);
 				
 				end;
@@ -101,6 +104,3 @@ begin
 	end loop;
 end;
 /
-
-
-
