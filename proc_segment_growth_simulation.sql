@@ -1,13 +1,25 @@
 create or replace procedure CHECK_SEGMENT_GROWTH (p_owner varchar2)
 as
-    cursor c_segments is select owner, segment_name, substr(segment_type,1,30) segment_type, bytes/1024/1024 size_mb from dba_segments where owner=p_owner;
-    cursor c_estimation (v_owner varchar2, v_segment varchar2,v_type varchar2)
-        is select * from table(dbms_space.OBJECT_GROWTH_TREND(v_owner,v_segment,v_type)) order by timepoint,quality;
+    cursor c_segments is 
+	Select owner, segment_name, tablespace_name,  Substr(segment_type, 1, 30) segment_type, partition_name
+      From dba_Segments
+     Where owner = p_owner
+       And Instr(segment_name,'BIN$') = 0 
+       And Instr(segment_type,'LOB')  = 0
+       And Length(segment_name) < 31
+      Order By segment_Name, partition_name; ;
+	
+    cursor c_estimation (v_owner varchar2, v_segment varchar2,v_type varchar2) is
+    Select *
+      From Table(Dbms_Space.Object_Growth_Trend(v_Owner, v_Segmento, v_Tipo,v_Partition))
+    Order By 1 /*Timepoint*/, 4 /*Quality*/;
+	
 	v_position_estimation number;
 	v_initial_space_used number;
 	v_space_current number;
 	v_space_future number;
 	v_pct_ocupation number;
+	
 begin
     DBMS_OUTPUT.ENABLE;
     for x in c_segments
