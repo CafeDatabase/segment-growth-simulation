@@ -12,15 +12,17 @@ The steps to run the simulation are:
 	create_segment_growth_table.sql
 
 2- Ensure DBMS_SPACE package can be executed properly, user has all privileges and all DBA stuff by runing this test:
+
 	SQL> @test_dbms_space_growth_trend.sql
 	
-	NOTE: 
+NOTE: If you get this message:
 	EXCEPTION in chrow processing -  code: -14551  msg: ORA-14551 
 	
-	This output is acceptable value! It's caused by a somehow bug or something and it's purely informative. 
-	It didn't raises itself an exception or error. Just ignore it!
+This output is acceptable value! It's caused by a somehow bug or something and it's purely informative. 
+It didn't raises itself an exception or error. Just ignore it!
 	
 3- Run create_segment_growth_table script. It will create a table named CAPACITY_SEGMENTS to store the simulation results.
+
 	SQL> @create_segment_growth_table.sql
     DROP TABLE CAPACITY_SEGMENTS
            *
@@ -29,7 +31,7 @@ The steps to run the simulation are:
 
 	Table created.
 
-	NOTE: The script first tries to drop the table in case it exists, so this output is acceptable.
+NOTE: The script first tries to drop the table in case it exists, so this output is acceptable.
 
 4- Run the procedure script.
 
