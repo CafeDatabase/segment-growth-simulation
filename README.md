@@ -5,21 +5,22 @@ The idea is to run the segment_growth_trend procedure for all segments in a spec
 
 The steps to run the simulation are:
 
-1.- Download all files in the database host server and start sqlplus located in the same filesystem.
+1- Download all files in the database host server and start sqlplus located in the same filesystem.
 
 	test_dbms_space_growth_trend.sql
 	proc_segment_growth_simulation.sql
 	create_segment_growth_table.sql
 
-2.- Ensure DBMS_SPACE package can be executed properly, user has all privileges and all DBA stuff by runing this test:
+2- Ensure DBMS_SPACE package can be executed properly, user has all privileges and all DBA stuff by runing this test:
 	SQL> @test_dbms_space_growth_trend.sql
 	
 	NOTE: 
 	EXCEPTION in chrow processing -  code: -14551  msg: ORA-14551 
+	
 	This output is acceptable value! It's caused by a somehow bug or something and it's purely informative. 
 	It didn't raises itself an exception or error. Just ignore it!
 	
-3.- Run create_segment_growth_table script. It will create a table named CAPACITY_SEGMENTS to store the simulation results.
+3- Run create_segment_growth_table script. It will create a table named CAPACITY_SEGMENTS to store the simulation results.
 	SQL> @create_segment_growth_table.sql
     DROP TABLE CAPACITY_SEGMENTS
            *
@@ -30,13 +31,13 @@ The steps to run the simulation are:
 
 	NOTE: The script first tries to drop the table in case it exists, so this output is acceptable.
 
-4.- Run the procedure script.
+4- Run the procedure script.
 
 	SQL> @proc_segment_growth_simulation.sql
 	
 	Procedure created.
 	
-5.- Launch a simulation.
+5- Launch a simulation.
 
 	SQL> exec CHECK_SEGMENT_GROWTH('HR')
 
